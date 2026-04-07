@@ -1,0 +1,72 @@
+﻿@page "/courses"
+@using SaaSUniversity.Shared
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject HttpClient Http
+
+<h3>Available Courses</h3>
+
+@if (courses == null)
+{
+    <p>Loading courses...</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Students Enrolled</th>
+                <th>Classes</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var course in courses)
+            {
+                <tr>
+                    <td>@course.Title</td>
+                    <td>@course.StudentCount</td>
+                    <td>
+                        <ul>
+                            @foreach (var cls in course.Classes)
+                            {
+                                <li>@cls.Name (@cls.Schedule)</li>
+                            }
+                        </ul>
+                    </td>
+                    <td>
+                        <button @onclick="() => Enroll(course.Id)">Enroll</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<p>@message</p>
+
+@code {
+    private List<CourseDto>? courses;
+    private string message = string.Empty;
+    private int studentId = 1; // for now, hardcode until login flow passes ID
+
+    protected override async Task OnInitializedAsync()
+    {
+        studentId = await LocalStorage.GetItemAsync<int>("studentId");
+        courses = await Http.GetFromJsonAsync<List<CourseDto>>("api/courses");
+    }
+
+    private async Task Enroll(int courseId)
+    {
+        var response = await Http.PostAsync($"api/courses/{courseId}/enroll/{studentId}", null);
+        if (response.IsSuccessStatusCode)
+        {
+            message = "Enrollment successful!";
+            courses = await Http.GetFromJsonAsync<List<CourseDto>>("api/courses"); // refresh
+        }
+        else
+        {
+            message = "Enrollment failed.";
+        }
+    }
+}

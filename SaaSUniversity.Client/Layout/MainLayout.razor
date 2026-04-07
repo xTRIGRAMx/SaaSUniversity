@@ -1,0 +1,71 @@
+﻿@using SaaSUniversity.Client.Service
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inherits LayoutComponentBase
+@inject UserState UserState
+@inject HttpClient Http
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main>
+        <div class="top-row px-4">
+
+            @if (UserState.IsLoggedIn)
+            {
+                <span class="ml-auto">
+                    Hello, @UserState.Email
+                    <button class="btn btn-link" @onclick="Logout">Logout</button>
+                </span>
+            }
+            else
+            {
+                <a href="login" class="ml-auto">Login</a>
+            }
+        </div>
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        UserState.OnChange += StateHasChanged;
+
+        // Rehydrate from local storage
+        var email = await LocalStorage.GetItemAsync<string>("studentEmail");
+        if (!string.IsNullOrEmpty(email))
+        {
+            UserState.SetEmail(email);
+        }
+
+        var token = await LocalStorage.GetItemAsync<string>("authToken");
+        if (!string.IsNullOrEmpty(token))
+        {
+            Http.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        }
+    }
+
+    private async Task Logout()
+    {
+        // Clear local storage
+        await LocalStorage.RemoveItemAsync("authToken");
+        await LocalStorage.RemoveItemAsync("studentId");
+        await LocalStorage.RemoveItemAsync("studentEmail");
+
+        // Clear UserState
+        UserState.Clear();
+
+        // Remove Authorization header
+        Http.DefaultRequestHeaders.Authorization = null;
+    }
+
+    public void Dispose()
+    {
+        UserState.OnChange -= StateHasChanged;
+    }
+}

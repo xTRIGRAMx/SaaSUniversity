@@ -1,0 +1,57 @@
+﻿@page "/login"
+@using SaaSUniversity.Client.Service
+@using SaaSUniversity.Shared
+@inject HttpClient Http
+@inject UserState UserState
+
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+
+<h3>Login</h3>
+
+<input @bind="email" placeholder="Email" />
+<input @bind="password" type="password" placeholder="Password" />
+<button @onclick="HandleLogin">Login</button>
+
+<p>@message</p>
+
+@code {
+    private string email = string.Empty;
+    private string password = string.Empty;
+    private string message = string.Empty;
+    private string token = string.Empty;
+
+    private async Task HandleLogin()
+    {
+        var dto = new StudentDto { Email = email, Password = password };
+        var response = await Http.PostAsJsonAsync("api/auth/login", dto);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var result = await response.Content.ReadFromJsonAsync<LoginResult>();
+            token = result?.Token ?? string.Empty;
+
+            await LocalStorage.SetItemAsync("authToken", token);
+            await LocalStorage.SetItemAsync("studentId", result.StudentId);
+            await LocalStorage.SetItemAsync("studentEmail", dto.Email);
+
+            // Update UserState reactively
+            UserState.SetEmail(dto.Email);
+
+            Http.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            message = "Login successful!";
+        }
+        else
+        {
+            message = "Login failed.";
+        }
+    }
+
+
+    public class LoginResult
+    {
+        public string Token { get; set; } = string.Empty;
+        public int StudentId { get; set; }
+    }
+}

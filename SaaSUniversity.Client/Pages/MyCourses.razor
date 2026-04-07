@@ -1,0 +1,78 @@
+﻿@page "/mycourses"
+@using SaaSUniversity.Shared
+@inject HttpClient Http
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+<h3>My Enrolled Courses</h3>
+
+@if (student == null)
+{
+    <p>Loading your courses...</p>
+}
+else if (student.EnrolledCourses.Count == 0)
+{
+    <p>You are not enrolled in any courses yet.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Course Title</th>
+                <th>Classes</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var course in student.EnrolledCourses)
+            {
+                <tr>
+                    <td>@course.Title</td>
+                    <td>
+                        <ul>
+                            @foreach (var cls in course.Classes)
+                            {
+                                <li>@cls.Name (@cls.Schedule)</li>
+                            }
+                        </ul>
+                    </td>
+                    <td>
+                        <button @onclick="() => Deregister(course.Id)">Deregister</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<p>@message</p>
+
+@code {
+    private StudentDto? student;
+    private string message = string.Empty;
+    private int studentId = 1; 
+
+    protected override async Task OnInitializedAsync()
+    {
+        studentId = await LocalStorage.GetItemAsync<int>("studentId");
+
+        if (studentId > 0)
+        {
+            student = await Http.GetFromJsonAsync<StudentDto>($"api/students/{studentId}");
+        }
+
+    }
+
+    private async Task Deregister(int courseId)
+    {
+        var response = await Http.DeleteAsync($"api/courses/{courseId}/deregister/{studentId}");
+        if (response.IsSuccessStatusCode)
+        {
+            message = "Deregistered successfully!";
+            student = await Http.GetFromJsonAsync<StudentDto>($"api/students/{studentId}");
+        }
+        else
+        {
+            message = "Failed to deregister.";
+        }
+    }
+}

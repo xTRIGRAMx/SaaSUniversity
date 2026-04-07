@@ -1,0 +1,28 @@
+﻿@page "/register"
+@using SaaSUniversity.Shared
+@inject HttpClient Http
+
+<h3>Register</h3>
+
+<input @bind="email" placeholder="Email" />
+<input @bind="password" type="password" placeholder="Password" />
+<button @onclick="HandleRegister">Register</button>
+
+<p>@message</p>
+
+@code {
+    private string email = string.Empty;
+    private string password = string.Empty;
+    private string message = string.Empty;
+
+    private async Task HandleRegister()
+    {
+        var dto = new StudentDto { Email = email, Password = password };
+        var response = await Http.PostAsJsonAsync("api/auth/register", dto);
+
+        if (response.IsSuccessStatusCode)
+            message = "Registration successful!";
+        else
+            message = "Registration failed.";
+    }
+}

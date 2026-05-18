@@ -1,14 +1,20 @@
 ﻿@page "/register"
-@using SaaSUniversity.Shared
-@inject HttpClient Http
+@inject IAuthService AuthService
+@inject CookieAuthenticationStateProvider CookieAuthStateProvider
+@inject NavigationManager NavigationManager
 
 <h3>Register</h3>
 
-<input @bind="email" placeholder="Email" />
-<input @bind="password" type="password" placeholder="Password" />
-<button @onclick="HandleRegister">Register</button>
+<div class="form-group mb-3">
+    <input @bind="email" class="form-control" placeholder="Email" />
+</div>
+<div class="form-group mb-3">
+    <input @bind="password" type="password" class="form-control" placeholder="Password" />
+</div>
 
-<p>@message</p>
+<button class="btn btn-success" @onclick="HandleRegister">Register</button>
+
+<p class="text-info mt-2">@message</p>
 
 @code {
     private string email = string.Empty;
@@ -17,12 +23,25 @@
 
     private async Task HandleRegister()
     {
-        var dto = new StudentDto { Email = email, Password = password };
-        var response = await Http.PostAsJsonAsync("api/auth/register", dto);
+        // 1. Map to your registration data structure
+        var dto = new Shared.StudentDto { Email = email, Password = password };
 
-        if (response.IsSuccessStatusCode)
-            message = "Registration successful!";
+        // 2. Execute via the clean service interface contract layer
+        var result = await AuthService.RegisterAsync(dto);
+
+        if (result != null)
+        {
+            message = "Registration and login successful!";
+
+            // 3. Notify the local state subsystem to instantly unlock UI elements
+            CookieAuthStateProvider.NotifyUserAuthentication(dto.Email, result.StudentId);
+
+            // 4. Smoothly route the student directly into the catalog dashboard
+            NavigationManager.NavigateTo("courses");
+        }
         else
-            message = "Registration failed.";
+        {
+            message = "Registration failed. Email might already be in use.";
+        }
     }
 }

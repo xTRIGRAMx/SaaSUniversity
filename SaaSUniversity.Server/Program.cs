@@ -1,8 +1,8 @@
-
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using SaaSUniversity.Server.Data;
+using SaaSUniversity.Server.Services;
 using System;
 using System.Text;
 
@@ -10,41 +10,43 @@ namespace SaaSUniversity.Server
 {
     public class Program
     {
+
         public static void Main(string[] args)
         {
+            System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.Services.AddScoped<IIdentityService, IdentityService>();
+
+            builder.Services.AddScoped<IStudentService, StudentService>();
+            builder.Services.AddScoped<ICourseService, CourseService>();
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowWasm",
                     policy =>
                     {
-                        policy.WithOrigins("https://localhost:7002") // WASM app URL
+                        policy.WithOrigins("https://localhost:7002")
                               .AllowAnyHeader()
-                              .AllowAnyMethod();
+                              .AllowAnyMethod()
+                              .AllowCredentials(); 
                     });
             });
 
+            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(options =>
+                {
+                    options.Cookie.Name = ".AspNetCore.Identity.Application";
+                    options.Cookie.SameSite = SameSiteMode.None;
+                    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 
-
-            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = false,
-            ValidateAudience = false,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes("ThisIsASuperLongSecretKeyForJWT1234567890")) 
-        };
-    });
-
+                    options.Events.OnRedirectToLogin = context =>
+                    {
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        return Task.CompletedTask;
+                    };
+                });
 
             builder.Services.AddAuthorization();
-            // Add services to the container.
-
             builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseInMemoryDatabase("CourseEnrollmentDb"));
 
@@ -72,6 +74,7 @@ namespace SaaSUniversity.Server
             app.UseCors("AllowWasm");
             app.UseHttpsRedirection();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
 

@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SaaSUniversity.Server.Data;
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using SaaSUniversity.Server.Extensions; // 👈 Gives access to .GetStudentId()
+using SaaSUniversity.Server.Services;
 using SaaSUniversity.Shared;
 
 namespace SaaSUniversity.Server.Controllers
@@ -9,63 +11,36 @@ namespace SaaSUniversity.Server.Controllers
     [Route("api/[controller]")]
     public class StudentsController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        public StudentsController(AppDbContext context) => _context = context;
+        private readonly IStudentService _studentService;
+        public StudentsController(IStudentService studentService) => _studentService = studentService;
 
         [HttpGet]
         public async Task<IEnumerable<StudentDto>> GetAllStudents()
         {
-            var students = await _context.Students
-                .Include(s => s.Courses)
-                .ThenInclude(c => c.Classes)
-                .ToListAsync();
-
-            return students.Select(s => new StudentDto
-            {
-                Id = s.Id,
-                Email = s.Email,
-                EnrolledCourses = s.Courses.Select(c => new CourseDto
-                {
-                    Id = c.Id,
-                    Title = c.Title,
-                    StudentCount = c.Students.Count,
-                    Classes = c.Classes.Select(cls => new ClassDto
-                    {
-                        Id = cls.Id,
-                        Name = cls.Name,
-                        Schedule = cls.Schedule
-                    }).ToList()
-                }).ToList()
-            });
+            return await _studentService.GetAllStudentsAsync();
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<StudentDto>> GetStudent(int id)
+        [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
+        [HttpGet("my-profile")]
+        public async Task<ActionResult<StudentDto>> GetStudent()
         {
-            var student = await _context.Students
-                .Include(s => s.Courses)
-                .ThenInclude(c => c.Classes)
-                .FirstOrDefaultAsync(s => s.Id == id);
+            var studentId = User.GetStudentId();
+            if (studentId == null) return Unauthorized("Session expired.");
 
-            if (student == null) return NotFound();
+            var student = await _studentService.GetStudentProfileAsync(studentId.Value);
+            return student == null ? NotFound() : Ok(student);
+        }
 
-            return new StudentDto
-            {
-                Id = student.Id,
-                Email = student.Email,
-                EnrolledCourses = student.Courses.Select(c => new CourseDto
-                {
-                    Id = c.Id,
-                    Title = c.Title,
-                    StudentCount = c.Students.Count,
-                    Classes = c.Classes.Select(cls => new ClassDto
-                    {
-                        Id = cls.Id,
-                        Name = cls.Name,
-                        Schedule = cls.Schedule
-                    }).ToList()
-                }).ToList()
-            };
+        // 🔑 Configured to use your requested /api/Students/{courseId}/deregister routing structure
+        [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
+        [HttpDelete("{courseId}/deregister")]
+        public async Task<IActionResult> Deregister(int courseId)
+        {
+            var studentId = User.GetStudentId();
+            if (studentId == null) return Unauthorized();
+
+            var success = await _studentService.DeregisterCourseAsync(studentId.Value, courseId);
+            return success ? Ok() : NotFound();
         }
     }
 }

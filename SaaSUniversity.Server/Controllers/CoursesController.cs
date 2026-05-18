@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SaaSUniversity.Server.Data;
-using SaaSUniversity.Server.Models;
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using SaaSUniversity.Server.Extensions;
+using SaaSUniversity.Server.Services;
 using SaaSUniversity.Shared;
 
 namespace SaaSUniversity.Server.Controllers
@@ -10,58 +11,24 @@ namespace SaaSUniversity.Server.Controllers
     [Route("api/[controller]")]
     public class CoursesController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        public CoursesController(AppDbContext context) => _context = context;
-
+        private readonly ICourseService _courseService;
+        public CoursesController(ICourseService courseService) => _courseService = courseService;
 
         [HttpGet]
         public async Task<IEnumerable<CourseDto>> GetCourses()
         {
-            var courses = await _context.Courses
-                .Include(c => c.Classes)
-                .Include(c => c.Students)
-                .ToListAsync();
-
-            return courses.Select(c => new CourseDto
-            {
-                Id = c.Id,
-                Title = c.Title,
-                StudentCount = c.Students.Count,
-                Classes = c.Classes.Select(cls => new ClassDto
-                {
-                    Id = cls.Id,
-                    Name = cls.Name,
-                    Schedule = cls.Schedule
-                }).ToList()
-            });
+            return await _courseService.GetCoursesCatalogAsync();
         }
 
-        [HttpPost("{courseId}/enroll/{studentId}")]
-        public async Task<IActionResult> Enroll(int courseId, int studentId)
+        [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
+        [HttpPost("{courseId}/enroll")]
+        public async Task<IActionResult> Enroll(int courseId)
         {
-            var student = await _context.Students.Include(s => s.Courses)
-                .FirstOrDefaultAsync(s => s.Id == studentId);
-            var course = await _context.Courses.FindAsync(courseId);
+            var studentId = User.GetStudentId();
+            if (studentId == null) return Unauthorized();
 
-            if (student == null || course == null) return NotFound();
-
-            student.Courses.Add(course);
-            await _context.SaveChangesAsync();
-            return Ok();
-        }
-
-        [HttpDelete("{courseId}/deregister/{studentId}")]
-        public async Task<IActionResult> Deregister(int courseId, int studentId)
-        {
-            var student = await _context.Students.Include(s => s.Courses)
-                .FirstOrDefaultAsync(s => s.Id == studentId);
-            if (student == null) return NotFound();
-
-            var course = student.Courses.FirstOrDefault(c => c.Id == courseId);
-            if (course != null) student.Courses.Remove(course);
-
-            await _context.SaveChangesAsync();
-            return Ok();
+            var success = await _courseService.EnrollStudentAsync(studentId.Value, courseId);
+            return success ? Ok() : NotFound();
         }
     }
 }

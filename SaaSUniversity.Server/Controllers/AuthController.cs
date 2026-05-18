@@ -1,7 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SaaSUniversity.Server.Data;
+using SaaSUniversity.Server.Extensions;
 using SaaSUniversity.Server.Models;
+using SaaSUniversity.Server.Services;
 using SaaSUniversity.Shared;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -13,57 +19,53 @@ namespace SaaSUniversity.Server.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        public AuthController(AppDbContext context) => _context = context;
+        private readonly IIdentityService _identityService;
+
+        public AuthController(IIdentityService identityService) => _identityService = identityService;
 
         [HttpPost("register")]
-        public async Task<ActionResult<StudentDto>> Register(StudentDto dto)
+        public async Task<IActionResult> Register(StudentDto dto)
         {
-            var student = new Student
+            var result = await _identityService.RegisterAsync(dto, HttpContext);
+            if (result == null)
             {
-                Email = dto.Email,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password)
-            };
-
-            _context.Students.Add(student);
-            await _context.SaveChangesAsync();
-
-            return new StudentDto { Id = student.Id, Email = student.Email };
+                return BadRequest("A student with this email already exists. Please log in instead.");
+            }
+            return Ok(result); // Returns LoginResult with StudentId + auto-login cookie attached
         }
 
         [HttpPost("login")]
-        public IActionResult Login(StudentDto dto)
+        public async Task<IActionResult> Login(StudentDto dto)
         {
-            var student = _context.Students.FirstOrDefault(s => s.Email == dto.Email);
-            if (student == null || !BCrypt.Net.BCrypt.Verify(dto.Password, student.PasswordHash))
-                return Unauthorized();
-
-            var claims = new[]
-            {
-        new Claim(ClaimTypes.Name, student.Email),
-        new Claim("StudentId", student.Id.ToString())
-    };
-
-            var key = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes("ThisIsASuperLongSecretKeyForJWT1234567890"));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var token = new JwtSecurityToken(
-                claims: claims,
-                expires: DateTime.Now.AddHours(1),
-                signingCredentials: creds);
-
-            return Ok(new LoginResult
-            {
-                Token = new JwtSecurityTokenHandler().WriteToken(token),
-                StudentId = student.Id
-            });
+            var result = await _identityService.LoginAsync(dto, HttpContext);
+            return result == null ? Unauthorized() : Ok(result);
         }
 
-        public class LoginResult
+        [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
+        [HttpGet("validate")]
+        public async Task<ActionResult<StudentDto>> Validate()
         {
-            public string Token { get; set; } = string.Empty;
-            public int StudentId { get; set; }
+            var studentId = User.GetStudentId();
+            if (studentId == null)
+                return Unauthorized("Student ID not found in cookie.");
+
+            var student = await _identityService.ValidateSessionAsync(studentId.Value);
+            if (student == null)
+                return Unauthorized("Student records missing (Database may have restarted).");
+
+            return Ok(student);
         }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            await _identityService.LogoutAsync(HttpContext);
+            return Ok();
+        }
+    }
+    public class LoginResult
+    {
+        public string Token { get; set; } = string.Empty;
+        public int StudentId { get; set; }
     }
 }

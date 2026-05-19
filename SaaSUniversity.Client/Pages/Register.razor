@@ -1,47 +1,78 @@
 ﻿@page "/register"
-@inject IAuthService AuthService
-@inject CookieAuthenticationStateProvider CookieAuthStateProvider
+@using SaaSUniversity.Shared
+@inject SaaSUniversity.Client.Service.IAuthService AuthService
+@inject SaaSUniversity.Client.Service.CookieAuthenticationStateProvider CookieAuthStateProvider
 @inject NavigationManager NavigationManager
 
-<h3>Register</h3>
+<div class="container d-flex justify-content-center align-items-center min-vh-75 mt-5">
+    <div class="card p-4 shadow border-0" style="width: 100%; max-width: 420px; border-radius: 12px; background: #ffffff;">
 
-<div class="form-group mb-3">
-    <input @bind="email" class="form-control" placeholder="Email" />
+        <div class="text-center mb-4">
+            <div class="display-6 fw-bold text-success mb-1"><i class="icon-user-follow"></i></div>
+            <h3 class="fw-bold text-dark mb-1">Student Registration</h3>
+            <p class="text-muted small">Create your profile</p>
+        </div>
+
+        <EditForm Model="@registerModel" OnValidSubmit="HandleRegister">
+            <DataAnnotationsValidator />
+
+            <div class="mb-3">
+                <label class="form-label font-13 fw-semibold text-secondary">Email Address</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="icon-envelope"></i></span>
+                    <InputText @bind-Value="registerModel.Email" class="form-control bg-light border-start-0 font-14" placeholder="newstudent@university.com" style="box-shadow: none;" />
+                </div>
+                <ValidationMessage For="@(() => registerModel.Email)" class="text-danger small mt-1 ps-1" />
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label font-13 fw-semibold text-secondary">Choose Password</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="icon-lock"></i></span>
+                    <InputText type="password" @bind-Value="registerModel.Password" class="form-control bg-light border-start-0 font-14" placeholder="••••••••" style="box-shadow: none;" />
+                </div>
+                @* 💡 Injected automatic validation text messaging *@
+                <ValidationMessage For="@(() => registerModel.Password)" class="text-danger small mt-1 ps-1" />
+            </div>
+
+            <button type="submit" class="btn btn-success w-100 py-2 fw-semibold rounded shadow-sm mb-3">
+                Register Now
+            </button>
+        </EditForm>
+
+        @if (!string.IsNullOrEmpty(message))
+        {
+            <div class="alert alert-info py-2 text-center small border-0 shadow-sm" role="alert">
+                @message
+            </div>
+        }
+
+        <div class="text-center mt-2">
+            <span class="text-muted small">Already registered? </span>
+            <a href="login" class="text-success small fw-semibold text-decoration-none">Sign in here</a>
+        </div>
+    </div>
 </div>
-<div class="form-group mb-3">
-    <input @bind="password" type="password" class="form-control" placeholder="Password" />
-</div>
-
-<button class="btn btn-success" @onclick="HandleRegister">Register</button>
-
-<p class="text-info mt-2">@message</p>
 
 @code {
-    private string email = string.Empty;
-    private string password = string.Empty;
+    private StudentDto registerModel = new();
     private string message = string.Empty;
 
     private async Task HandleRegister()
     {
-        // 1. Map to your registration data structure
-        var dto = new Shared.StudentDto { Email = email, Password = password };
+        message = string.Empty; // Clear alert block
 
-        // 2. Execute via the clean service interface contract layer
-        var result = await AuthService.RegisterAsync(dto);
+        var result = await AuthService.RegisterAsync(registerModel);
 
         if (result != null)
         {
             message = "Registration and login successful!";
-
-            // 3. Notify the local state subsystem to instantly unlock UI elements
-            CookieAuthStateProvider.NotifyUserAuthentication(dto.Email, result.StudentId);
-
-            // 4. Smoothly route the student directly into the catalog dashboard
+            CookieAuthStateProvider.NotifyUserAuthentication(registerModel.Email, result.StudentId);
             NavigationManager.NavigateTo("courses");
         }
         else
         {
-            message = "Registration failed. Email might already be in use.";
+            message = "Registration failed. This email may already be registered.";
         }
     }
 }

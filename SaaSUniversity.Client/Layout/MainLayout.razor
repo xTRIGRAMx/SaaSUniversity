@@ -25,23 +25,24 @@
                             Home
                         </NavLink>
                     </li>
+
                     <AuthorizeView>
                         <NotAuthorized>
-
                             <li class="nav-item">
-                                <NavLink class="nav-link d-flex align-items-center style="height: 38px !important; padding: 0 10px !important;" href="register">
+                                <NavLink class="nav-link d-flex align-items-center" style="height: 38px !important; padding: 0 10px !important;" href="register">
                                     Register
                                 </NavLink>
                             </li>
+
                             <li class="nav-item">
-                                <NavLink class="nav-link d-flex align-items-center style="height: 38px !important; padding: 0 10px !important;" href="Login">
-                                    login
+                                <NavLink class="nav-link d-flex align-items-center" style="height: 38px !important; padding: 0 10px !important;" href="Login">
+                                    Login
                                 </NavLink>
                             </li>
                         </NotAuthorized>
                         <Authorized>
                             <li class="nav-item">
-                                <NavLink class="nav-link d-flex align-items-center style="height: 38px !important; padding: 0 10px !important;" href="mycourses">
+                                <NavLink class="nav-link d-flex align-items-center" style="height: 38px !important; padding: 0 10px !important;" href="mycourses">
                                     My Courses
                                 </NavLink>
                             </li>
@@ -51,27 +52,35 @@
                         <NavLink class="nav-link d-flex align-items-center" style="height: 38px !important; padding: 0 10px !important;" href="courses">
                             Courses
                         </NavLink>
-                    </li>                 
+                    </li>
                 </ul>
             </div>
-            <div class="d-flex align-items-center me-3">
-                <div class="me-3">
-                    <AuthorizeView>
-                        <Authorized>
-                            <span class="ml-auto">
-                                Hello, @context.User.Identity?.Name!
-                                <button class="btn btn-link" @onclick="Logout">Logout</button>
+
+            <div class="d-flex align-items-center me-3 h-100">
+                <AuthorizeView>
+                    <Authorized>
+                        <div class="d-flex align-items-center text-white-50 font-14">
+                            <span class="me-2 text-white fw-semibold">
+                                <i class="icon-user me-1 text-light opacity-100"></i> Hello, @context.User.Identity?.Name!
                             </span>
-                        </Authorized>
-                    </AuthorizeView>
-                </div>
+                            <span class="mx-2 text-muted">|</span>
+                            <button class="btn btn-sm btn-link text-white-50 text-decoration-none p-0 ps-1 border-0 font-14 align-baseline"
+                                    style="box-shadow: none;"
+                                    @onclick="Logout">
+                                <i class="icon-logout me-1"></i> Logout
+                            </button>
+                        </div>
+                    </Authorized>
+                </AuthorizeView>
             </div>
         </div>
+
         <article class="content px-4">
             @Body
         </article>
     </main>
 </div>
+
 @code {
     private async Task Logout()
     {

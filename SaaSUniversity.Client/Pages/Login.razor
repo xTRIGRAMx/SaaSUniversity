@@ -1,53 +1,82 @@
 ﻿@page "/login"
 @using SaaSUniversity.Shared
-@inject HttpClient Http
 @inject UserState UserState
-@inject IAuthService AuthService
+@inject SaaSUniversity.Client.Service.IAuthService AuthService
+@inject SaaSUniversity.Client.Service.CookieAuthenticationStateProvider CookieAuthStateProvider
 @inject NavigationManager NavigationManager
 
+<div class="container d-flex justify-content-center align-items-center min-vh-75 mt-5">
+    <div class="card p-4 shadow border-0" style="width: 100%; border-radius: 12px; background: #ffffff;">
 
-@inject CookieAuthenticationStateProvider CookieAuthStateProvider
+        <div class="text-center mb-4">
+            <div class="display-6 fw-bold text-primary mb-1"><i class="icon-graduation-hat"></i></div>
+            <h3 class="fw-bold text-dark mb-1">Welcome Back</h3>
+            <p class="text-muted small">Log in to manage your student workspace</p>
+        </div>
 
-@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+        @* 💡 Wrapped inside EditForm bound to our model data structure *@
+        <EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
+            <DataAnnotationsValidator />
 
-<h3>Login</h3>
+            <div class="mb-3">
+                <label class="form-label font-13 fw-semibold text-secondary">Email Address</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="icon-user"></i></span>
+                    <InputText @bind-Value="loginModel.Email" class="form-control bg-light border-start-0 font-14" placeholder="student@university.com" style="box-shadow: none;" />
+                </div>
+                @* 💡 Automatically catches invalid email syntax or empty entries *@
+                <ValidationMessage For="@(() => loginModel.Email)" class="text-danger small mt-1 ps-1" />
+            </div>
 
-<input class="form-control" @bind="email" placeholder="Email" />
-<input class="form-control" @bind="password" type="password" placeholder="Password" />
-<button class="btn btn-success" @onclick="HandleLogin">Login</button>
+            <div class="mb-4">
+                <label class="form-label font-13 fw-semibold text-secondary">Password</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="icon-lock"></i></span>
+                    <InputText type="password" @bind-Value="loginModel.Password" class="form-control bg-light border-start-0 font-14" placeholder="••••••••" style="box-shadow: none;" />
+                </div>
+                @* 💡 Automatically flags an empty password row *@
+                <ValidationMessage For="@(() => loginModel.Password)" class="text-danger small mt-1 ps-1" />
+            </div>
 
-<p class="text-info mt-2">@message</p>
+            <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold rounded shadow-sm mb-3">
+                Sign In
+            </button>
+        </EditForm>
+
+        @if (!string.IsNullOrEmpty(message))
+        {
+            <div class="alert alert-info py-2 text-center small border-0 shadow-sm" role="alert">
+                @message
+            </div>
+        }
+
+        <div class="text-center mt-2">
+            <span class="text-muted small">New to the campus? </span>
+            <a href="register" class="text-primary small fw-semibold text-decoration-none">Create an account</a>
+        </div>
+    </div>
+</div>
+
 @code {
-
-    private string email = string.Empty;
-    private string password = string.Empty;
+    private StudentDto loginModel = new();
     private string message = string.Empty;
-    private string token = string.Empty;
 
     private async Task HandleLogin()
     {
-        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
-        {
-            message = "Please complete all fields.";
-            return;
-        }
+        message = string.Empty; 
 
-        var dto = new StudentDto { Email = email, Password = password };
-        var result = await AuthService.LoginAsync(dto);
+        var result = await AuthService.LoginAsync(loginModel);
 
         if (result != null)
         {
-            UserState.SetEmail(dto.Email);
-
-            // 🔑 This will now compile perfectly because it points to the correct Shared DTO model!
-            CookieAuthStateProvider.NotifyUserAuthentication(dto.Email, result.StudentId);
+            UserState.SetEmail(loginModel.Email);
+            CookieAuthStateProvider.NotifyUserAuthentication(loginModel.Email, result.StudentId);
             message = "Login successful!";
-
-            NavigationManager.NavigateTo("courses");
+            NavigationManager.NavigateTo("");
         }
         else
         {
-            message = "Login failed. Invalid credentials.";
+            message = "Invalid email address or password configuration.";
         }
     }
 }

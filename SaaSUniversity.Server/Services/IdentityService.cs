@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
-using SaaSUniversity.Server.Controllers;
 using SaaSUniversity.Server.Data;
 using SaaSUniversity.Server.Models;
 using SaaSUniversity.Shared;
+using System;
+using System.Collections.Generic;
 using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace SaaSUniversity.Server.Services
 {
@@ -17,51 +19,80 @@ namespace SaaSUniversity.Server.Services
 
         public async Task<LoginResult?> RegisterAsync(StudentDto dto, HttpContext httpContext)
         {
-            var existingStudent = await _context.Students
-                .FirstOrDefaultAsync(s => s.Email == dto.Email);
-
-            if (existingStudent != null) return null;
-
-            var student = new Student
+            try
             {
-                Email = dto.Email,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password)
-            };
+                var existingStudent = await _context.Students
+                    .FirstOrDefaultAsync(s => s.Email == dto.Email);
 
-            _context.Students.Add(student);
-            await _context.SaveChangesAsync(); // 🚨 Persist immediately to generate the student.Id
+                if (existingStudent != null) return null;
 
-            // 🔑 Trigger automatic sign-in workflow instantly post-registration
-            await IssueAuthenticationCookieAsync(student.Id, student.Email, httpContext);
+                var student = new Student
+                {
+                    Email = dto.Email,
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password)
+                };
 
-            return new LoginResult { StudentId = student.Id };
+                _context.Students.Add(student);
+                await _context.SaveChangesAsync(); 
+
+                await IssueAuthenticationCookieAsync(student.Id, student.Email, httpContext);
+
+                return new LoginResult { StudentId = student.Id };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Critical Exception in IdentityService.RegisterAsync: {ex.Message}");
+                return null; 
+            }
         }
 
         public async Task<LoginResult?> LoginAsync(StudentDto dto, HttpContext httpContext)
         {
-            var student = await _context.Students.FirstOrDefaultAsync(s => s.Email == dto.Email);
-            if (student == null || !BCrypt.Net.BCrypt.Verify(dto.Password, student.PasswordHash))
-                return null;
+            try
+            {
+                var student = await _context.Students.FirstOrDefaultAsync(s => s.Email == dto.Email);
+                if (student == null || !BCrypt.Net.BCrypt.Verify(dto.Password, student.PasswordHash))
+                    return null;
 
-            await IssueAuthenticationCookieAsync(student.Id, student.Email, httpContext);
+                await IssueAuthenticationCookieAsync(student.Id, student.Email, httpContext);
 
-            return new LoginResult { StudentId = student.Id };
+                return new LoginResult { StudentId = student.Id };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Critical Exception in IdentityService.LoginAsync: {ex.Message}");
+                return null; 
+            }
         }
 
         public async Task<StudentDto?> ValidateSessionAsync(int studentId)
         {
-            var student = await _context.Students.FindAsync(studentId);
-            if (student == null) return null;
+            try
+            {
+                var student = await _context.Students.FindAsync(studentId);
+                if (student == null) return null;
 
-            return new StudentDto { Id = student.Id, Email = student.Email };
+                return new StudentDto { Id = student.Id, Email = student.Email };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Critical Exception in IdentityService.ValidateSessionAsync: {ex.Message}");
+                return null; 
+            }
         }
 
         public async Task LogoutAsync(HttpContext httpContext)
         {
-            await httpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            try
+            {
+                await httpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception in IdentityService.LogoutAsync: {ex.Message}");
+            }
         }
 
-        // Shared internal method to completely eliminate copy-pasted cookie generation logic
         private static async Task IssueAuthenticationCookieAsync(int studentId, string email, HttpContext httpContext)
         {
             var claims = new List<Claim>

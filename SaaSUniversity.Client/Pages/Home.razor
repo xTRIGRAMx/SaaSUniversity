@@ -1,4 +1,6 @@
 ﻿@page "/"
+@using SaaSUniversity.Shared
+@inject SaaSUniversity.Client.Service.CoursesService.ICourseService CourseService
 
 <div class="height-400" style="background:url(/img/campus.jpg); background-size: cover; background-repeat: no-repeat;background-position: center center;">
     <div class="container">
@@ -7,19 +9,15 @@
                 <div class="p-30 bg-dark text-white" style="opacity:0.85">
                     <div class="font-19 pl-15 pb-5">SaaS solution</div>
                     <ul>
-                        <li>Multi-tenant</li>
-                        <li>Multi-timezone</li>
-                        <li>Multi-language</li>
-                        <li>Multi-locale</li>
-                        <li>Multi-currency</li>
+                        <li>Strict Separation of Concerns</li>
+                        <li>Decoupled Frontend Services:</li>
+                        <li>Robust Boundary Protection</li>
+                        <li>Unified State Synchronization</li>
                     </ul>
                 </div>
-
             </div>
         </div>
     </div>
-
-
 </div>
 
 <div class="landing-bar">
@@ -32,77 +30,43 @@
 <div class="row">
     <div class="col-md-4">
         <h3 class="mb-4">Statistics</h3>
-        <div >
-            <table class="table table-hover table-sm ">
+        <div>
+            <table class="table table-hover table-sm">
                 <tbody>
                     <tr>
-                        <td class="width-70">
-                            <a href="tenants"><i class="icon-globe"></i></a>
-                        </td>
-                        <td class="pt-9">
-                            <a class="table-list-link" href="tenants">Tenants</a>
-                        </td>
-                        <td class="pt-9">@TenantCount</td>
+                        <td class="width-70 text-secondary"><i class="icon-globe"></i></td>
+                        <td class="pt-9 text-dark fw-semibold">Tenants</td>
+                        <td class="pt-9 fw-bold text-primary">@stats.TenantCount</td>
                     </tr>
-
                     <tr>
-                        <td class="width-70">
-                            <a href="users"><i class="icon-user"></i></a>
-                        </td>
-                        <td class="pt-9">
-                            <a class="table-list-link" href="users">Users</a>
-                        </td>
-                        <td class="pt-9">@UserCount</td>
+                        <td class="width-70 text-secondary"><i class="icon-user"></i></td>
+                        <td class="pt-9 text-dark fw-semibold">Users</td>
+                        <td class="pt-9 fw-bold text-primary">@stats.UserCount</td>
                     </tr>
-
                     <tr>
-                        <td class="width-70">
-                            <a href="students"><i class="icon-people"></i></a>
-                        </td>
-                        <td class="pt-9">
-                            <a class="table-list-link" href="students">Students</a>
-                        </td>
-                        <td class="pt-9">@StudentCount</td>
+                        <td class="width-70 text-secondary"><i class="icon-people"></i></td>
+                        <td class="pt-9 text-dark fw-semibold">Students</td>
+                        <td class="pt-9 fw-bold text-primary">@stats.StudentCount</td>
                     </tr>
-
                     <tr>
-                        <td class="width-70">
-                            <a href="enrollments"><i class="icon-doc"></i></a>
-                        </td>
-                        <td class="pt-9">
-                            <a class="table-list-link" href="enrollments">Enrollments</a>
-                        </td>
-                        <td class="pt-9">@EnrollmentCount</td>
+                        <td class="width-70 text-secondary"><i class="icon-doc"></i></td>
+                        <td class="pt-9 text-dark fw-semibold">Enrollments</td>
+                        <td class="pt-9 fw-bold text-primary">@stats.EnrollmentCount</td>
                     </tr>
-
                     <tr>
-                        <td class="width-70">
-                            <a href="classes"><i class="icon-calendar"></i></a>
-                        </td>
-                        <td class="pt-9">
-                            <a class="table-list-link" href="classes">Classes</a>
-                        </td>
-                        <td class="pt-9">@ClassCount</td>
+                        <td class="width-70 text-secondary"><i class="icon-calendar"></i></td>
+                        <td class="pt-9 text-dark fw-semibold">Classes</td>
+                        <td class="pt-9 fw-bold text-primary">@stats.ClassCount</td>
                     </tr>
-
                     <tr>
-                        <td class="width-70">
-                            <a href="courses"><i class="icon-book-open"></i></a>
-                        </td>
-                        <td class="pt-9">
-                            <a class="table-list-link" href="courses">Courses</a>
-                        </td>
-                        <td class="pt-9">@CourseCount</td>
+                        <td class="width-70 text-secondary"><i class="icon-book-open"></i></td>
+                        <td class="pt-9 text-dark fw-semibold">Courses</td>
+                        <td class="pt-9 fw-bold text-primary">@stats.CourseCount</td>
                     </tr>
-
                     <tr>
-                        <td class="width-70">
-                            <a href="instructors"><i class="icon-briefcase"></i></a>
-                        </td>
-                        <td class="pt-9">
-                            <a class="table-list-link" href="instructors">Instructors</a>
-                        </td>
-                        <td class="pt-9">@InstructorCount</td>
+                        <td class="width-70 text-secondary"><i class="icon-briefcase"></i></td>
+                        <td class="pt-9 text-dark fw-semibold">Instructors</td>
+                        <td class="pt-9 fw-bold text-primary">@stats.InstructorCount</td>
                     </tr>
                 </tbody>
             </table>
@@ -112,23 +76,30 @@
     <div class="col-md-8 ps-md-5">
         <h3 class="mb-4">Welcome</h3>
         <p class="text-muted" style="line-height: 1.7; font-size: 15px;">
-            SaaS University is a multi-tenant SaaS solution. It's designed for universities and other educational organizations to help them manage and maintain students, courses, instructors, enrollments, and other information.
+            SaaS University is a SaaS solution. It's designed for universities and other educational organizations to help them manage and maintain students, enrollments, classes and other information.
         </p>
         <p class="text-muted" style="line-height: 1.7; font-size: 15px;">
-            This modern SaaS application is <em>multi-tenant, multi-language, multi-locale, multi-timezone,</em> and <em>multi-currency</em>. This solution was created with modern design patterns, best practices, and advanced SaaS techniques.
+            The app application is built as a decoupled, multi-tier Single Page Application (SPA)
+            leveraging Blazor WebAssembly (WASM) on the front end and an ASP.NET Core Minimal/Web API backend.
+        </p>
+        <p class="text-muted" style="line-height: 1.7; font-size: 15px;">
+            The architectural layout emphasizes clean separation of concerns, high-performance data processing, and enterprise scalability patterns.
         </p>
         <p class="text-muted" style="line-height: 1.7; font-size: 15px; margin-top: 2rem;">
-            The application is fully DX (Design Excellence™) and CX (Code Excellence™) compliant, with a simple-to-use, attractive UI.
+            The application is DX and CX compliant, with a simple-to-use, attractive UI.
         </p>
     </div>
 </div>
 
 @code {
-    private int TenantCount { get; set; } = 5;
-    private int UserCount { get; set; } = 6;
-    private int StudentCount { get; set; } = 78;
-    private int EnrollmentCount { get; set; } = 200;
-    private int ClassCount { get; set; } = 64;
-    private int CourseCount { get; set; } = 53;
-    private int InstructorCount { get; set; } = 46;
+    private DashboardStatsDto stats = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var liveData = await CourseService.GetDashboardStatsAsync();
+        if (liveData != null)
+        {
+            stats = liveData;
+        }
+    }
 }

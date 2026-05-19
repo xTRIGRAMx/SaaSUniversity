@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SaaSUniversity.Server.Extensions; // 👈 Gives access to .GetStudentId()
+using SaaSUniversity.Server.Extensions;
 using SaaSUniversity.Server.Services;
 using SaaSUniversity.Shared;
 

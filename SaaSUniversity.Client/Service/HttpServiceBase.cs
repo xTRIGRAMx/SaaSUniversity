@@ -9,7 +9,6 @@ namespace SaaSUniversity.Client.Service
 
         protected HttpServiceBase(HttpClient http) => Http = http;
 
-        // 🔑 Automatically configures cookies for ANY outbound request type
         protected HttpRequestMessage CreateAuthenticatedRequest(HttpMethod method, string requestUri, object? content = null)
         {
             var request = new HttpRequestMessage(method, requestUri);

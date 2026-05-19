@@ -15,9 +15,14 @@ namespace SaaSUniversity.Server.Controllers
         public CoursesController(ICourseService courseService) => _courseService = courseService;
 
         [HttpGet]
-        public async Task<IEnumerable<CourseDto>> GetCourses()
+        [HttpGet]
+        public async Task<ActionResult<PagedResult<CourseDto>>> GetCourses([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 5)
         {
-            return await _courseService.GetCoursesCatalogAsync();
+            if (pageNumber < 1) pageNumber = 1;
+            if (pageSize < 1) pageSize = 5;
+
+            var result = await _courseService.GetCoursesCatalogAsync(pageNumber, pageSize);
+            return Ok(result);
         }
 
         [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]

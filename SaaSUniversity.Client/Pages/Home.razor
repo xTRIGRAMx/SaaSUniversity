@@ -24,57 +24,111 @@
 
 <div class="landing-bar">
     <div class="container">
-        <div class="landing-bar-text">SaaS University, &nbsp;Palo Alto, California.</div>
+        <div class="landing-bar-text">SaaS University, &nbsp;Cape Town, South Africa.</div>
     </div>
 </div>
 <br />
 
-<div class="">
-    <div class="container">
-        @*Leave this here..*@
-        <div class="row">
+<div class="row">
+    <div class="col-md-4">
+        <h3 class="mb-4">Statistics</h3>
+        <div >
+            <table class="table table-hover table-sm ">
+                <tbody>
+                    <tr>
+                        <td class="width-70">
+                            <a href="tenants"><i class="icon-globe"></i></a>
+                        </td>
+                        <td class="pt-9">
+                            <a class="table-list-link" href="tenants">Tenants</a>
+                        </td>
+                        <td class="pt-9">@TenantCount</td>
+                    </tr>
 
-            <div class="col-12 col-md-4">
+                    <tr>
+                        <td class="width-70">
+                            <a href="users"><i class="icon-user"></i></a>
+                        </td>
+                        <td class="pt-9">
+                            <a class="table-list-link" href="users">Users</a>
+                        </td>
+                        <td class="pt-9">@UserCount</td>
+                    </tr>
 
-                <div class="p-20">
+                    <tr>
+                        <td class="width-70">
+                            <a href="students"><i class="icon-people"></i></a>
+                        </td>
+                        <td class="pt-9">
+                            <a class="table-list-link" href="students">Students</a>
+                        </td>
+                        <td class="pt-9">@StudentCount</td>
+                    </tr>
 
-                    <h4>Statistics</h4>
+                    <tr>
+                        <td class="width-70">
+                            <a href="enrollments"><i class="icon-doc"></i></a>
+                        </td>
+                        <td class="pt-9">
+                            <a class="table-list-link" href="enrollments">Enrollments</a>
+                        </td>
+                        <td class="pt-9">@EnrollmentCount</td>
+                    </tr>
 
-@*                     <table class="table table-hover table-sm mt-25">
-                        @foreach (var item in @Model!.Items)
-                        {
-                            <tr>
-                                <td class="width-70"><i class='@item.Icon'></i></td>
-                                <td class="pt-13">@item.Name</td>
-                                <td class="pt-13 text-center">@item.Count</td>
-                            </tr>
-                        }
-                    </table> *@
+                    <tr>
+                        <td class="width-70">
+                            <a href="classes"><i class="icon-calendar"></i></a>
+                        </td>
+                        <td class="pt-9">
+                            <a class="table-list-link" href="classes">Classes</a>
+                        </td>
+                        <td class="pt-9">@ClassCount</td>
+                    </tr>
 
-                </div>
+                    <tr>
+                        <td class="width-70">
+                            <a href="courses"><i class="icon-book-open"></i></a>
+                        </td>
+                        <td class="pt-9">
+                            <a class="table-list-link" href="courses">Courses</a>
+                        </td>
+                        <td class="pt-9">@CourseCount</td>
+                    </tr>
 
-            </div>
-            <div class="col-12 col-md-8">
-                <div class="pt-30 pr-lg-50">
-
-                    <h3> Welcome</h3>
-
-                    <p class="pt-25 font-17">
-                        SaaS University is a multi-tenant Saas solution. It's designed for
-                        universities and other educational organizations to help them
-                        manage and maintain students, courses, instructors, enrollments, and other information.<br />
-                    </p>
-                    <p class="font-17">
-                        This modern SaaS application is <i> multi-tenant, multi-language, multi-locale, multi-timezone</i>,
-                        and <i>multi-currency</i>. This solution was created with modern design patterns,
-                        best practices, and advanced SaaS techniques.
-                    </p>
-                    <p class="font-17">
-                        The application is fully DX (Design Excellence&trade;) and CX (Code Excellence&trade;) compliant.
-                        with a simple-to-use, attractive UI.
-                    </p>
-                </div>
-            </div>
+                    <tr>
+                        <td class="width-70">
+                            <a href="instructors"><i class="icon-briefcase"></i></a>
+                        </td>
+                        <td class="pt-9">
+                            <a class="table-list-link" href="instructors">Instructors</a>
+                        </td>
+                        <td class="pt-9">@InstructorCount</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
+
+    <div class="col-md-8 ps-md-5">
+        <h3 class="mb-4">Welcome</h3>
+        <p class="text-muted" style="line-height: 1.7; font-size: 15px;">
+            SaaS University is a multi-tenant SaaS solution. It's designed for universities and other educational organizations to help them manage and maintain students, courses, instructors, enrollments, and other information.
+        </p>
+        <p class="text-muted" style="line-height: 1.7; font-size: 15px;">
+            This modern SaaS application is <em>multi-tenant, multi-language, multi-locale, multi-timezone,</em> and <em>multi-currency</em>. This solution was created with modern design patterns, best practices, and advanced SaaS techniques.
+        </p>
+        <p class="text-muted" style="line-height: 1.7; font-size: 15px; margin-top: 2rem;">
+            The application is fully DX (Design Excellence™) and CX (Code Excellence™) compliant, with a simple-to-use, attractive UI.
+        </p>
+    </div>
 </div>
+
+@code {
+    private int TenantCount { get; set; } = 5;
+    private int UserCount { get; set; } = 6;
+    private int StudentCount { get; set; } = 78;
+    private int EnrollmentCount { get; set; } = 200;
+    private int ClassCount { get; set; } = 64;
+    private int CourseCount { get; set; } = 53;
+    private int InstructorCount { get; set; } = 46;
+}

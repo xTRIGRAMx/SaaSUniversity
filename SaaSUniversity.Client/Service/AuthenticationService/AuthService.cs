@@ -1,6 +1,5 @@
 ﻿using SaaSUniversity.Shared;
 using System.Net.Http.Json;
-using static SaaSUniversity.Client.Pages.Login;
 
 namespace SaaSUniversity.Client.Service
 {

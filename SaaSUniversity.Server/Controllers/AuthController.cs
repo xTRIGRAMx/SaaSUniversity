@@ -63,9 +63,4 @@ namespace SaaSUniversity.Server.Controllers
             return Ok();
         }
     }
-    public class LoginResult
-    {
-        public string Token { get; set; } = string.Empty;
-        public int StudentId { get; set; }
-    }
 }

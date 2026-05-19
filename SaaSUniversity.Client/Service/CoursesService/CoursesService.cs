@@ -2,17 +2,22 @@
 using SaaSUniversity.Shared;
 using System.Net.Http.Json;
 
-namespace SaaSUniversity.Client.Service
+namespace SaaSUniversity.Client.Service.CoursesService
 {
     public class CourseService : HttpServiceBase, ICourseService
     {
         public CourseService(HttpClient http) : base(http) { }
 
-        public async Task<List<CourseDto>?> GetAvailableCoursesAsync()
+        public async Task<PagedResult<CourseDto>?> GetAvailableCoursesAsync(int pageNumber, int pageSize)
         {
-            var request = CreateAuthenticatedRequest(HttpMethod.Get, "api/courses");
+            // Build out a safe parameter string target
+            var requestUri = $"api/courses?pageNumber={pageNumber}&pageSize={pageSize}";
+            var request = CreateAuthenticatedRequest(HttpMethod.Get, requestUri);
             var response = await Http.SendAsync(request);
-            return response.IsSuccessStatusCode ? await response.Content.ReadFromJsonAsync<List<CourseDto>>() : null;
+
+            return response.IsSuccessStatusCode
+                ? await response.Content.ReadFromJsonAsync<PagedResult<CourseDto>>()
+                : null;
         }
 
         public async Task<StudentDto?> GetMyEnrolledCoursesAsync()

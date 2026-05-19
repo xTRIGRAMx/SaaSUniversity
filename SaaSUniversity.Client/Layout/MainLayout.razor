@@ -9,25 +9,64 @@
 @inject IAuthService AuthService
 
 <div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
 
     <main>
-        <div class="top-row px-4">
-            <AuthorizeView>
-                <Authorized>
-                    <span class="ml-auto">
-                        Hello, @context.User.Identity?.Name!
-                        <button class="btn btn-link" @onclick="Logout">Logout</button>
-                    </span>
-                </Authorized>
-                <NotAuthorized>
-                    <a href="login" class="ml-auto">Login</a>
-                </NotAuthorized>
-            </AuthorizeView>
-        </div>
+        <div class="main-menu d-flex align-items-center justify-content-between w-full">
 
+            <div class="d-flex align-items-center">
+                <a href="/"><img src="/img/logo.png" alt="SaaS" class="img-fluid" /></a>
+                <a class="navbar-brand text-white d-flex align-items-center ms-3 me-3" href="" style="text-decoration: none;">
+                    <span class="bi bi-grid-3x3-gap-fill fs-5" aria-hidden="true"></span>
+                </a>
+
+                <ul class="nav nav-menu d-flex align-items-center list-unstyled mb-0">
+                    <li class="nav-item">
+                        <NavLink class="nav-link d-flex align-items-center" style="height: 38px !important; padding: 0 10px !important;" href="" Match="NavLinkMatch.All">
+                            Home
+                        </NavLink>
+                    </li>
+                    <AuthorizeView>
+                        <NotAuthorized>
+
+                            <li class="nav-item">
+                                <NavLink class="nav-link d-flex align-items-center style="height: 38px !important; padding: 0 10px !important;" href="register">
+                                    Register
+                                </NavLink>
+                            </li>
+                            <li class="nav-item">
+                                <NavLink class="nav-link d-flex align-items-center style="height: 38px !important; padding: 0 10px !important;" href="Login">
+                                    login
+                                </NavLink>
+                            </li>
+                        </NotAuthorized>
+                        <Authorized>
+                            <li class="nav-item">
+                                <NavLink class="nav-link d-flex align-items-center style="height: 38px !important; padding: 0 10px !important;" href="mycourses">
+                                    My Courses
+                                </NavLink>
+                            </li>
+                        </Authorized>
+                    </AuthorizeView>
+                    <li class="nav-item">
+                        <NavLink class="nav-link d-flex align-items-center" style="height: 38px !important; padding: 0 10px !important;" href="courses">
+                            Courses
+                        </NavLink>
+                    </li>                 
+                </ul>
+            </div>
+            <div class="d-flex align-items-center me-3">
+                <div class="me-3">
+                    <AuthorizeView>
+                        <Authorized>
+                            <span class="ml-auto">
+                                Hello, @context.User.Identity?.Name!
+                                <button class="btn btn-link" @onclick="Logout">Logout</button>
+                            </span>
+                        </Authorized>
+                    </AuthorizeView>
+                </div>
+            </div>
+        </div>
         <article class="content px-4">
             @Body
         </article>

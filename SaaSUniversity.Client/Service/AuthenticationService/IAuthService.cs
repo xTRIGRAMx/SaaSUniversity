@@ -1,5 +1,4 @@
 ﻿using SaaSUniversity.Shared;
-using static SaaSUniversity.Client.Pages.Login;
 
 namespace SaaSUniversity.Client.Service
 {

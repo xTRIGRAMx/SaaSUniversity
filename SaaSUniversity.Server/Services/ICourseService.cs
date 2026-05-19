@@ -4,7 +4,6 @@ namespace SaaSUniversity.Server.Services
 {
     public interface ICourseService
     {
-        Task<IEnumerable<CourseDto>> GetCoursesCatalogAsync();
-        Task<bool> EnrollStudentAsync(int studentId, int courseId);
+        Task<PagedResult<CourseDto>> GetCoursesCatalogAsync(int pageNumber, int pageSize); Task<bool> EnrollStudentAsync(int studentId, int courseId);
     }
 }

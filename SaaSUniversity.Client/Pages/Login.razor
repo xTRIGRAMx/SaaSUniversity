@@ -3,6 +3,8 @@
 @inject HttpClient Http
 @inject UserState UserState
 @inject IAuthService AuthService
+@inject NavigationManager NavigationManager
+
 
 @inject CookieAuthenticationStateProvider CookieAuthStateProvider
 
@@ -10,41 +12,42 @@
 
 <h3>Login</h3>
 
-<input @bind="email" placeholder="Email" />
-<input @bind="password" type="password" placeholder="Password" />
-<button @onclick="HandleLogin">Login</button>
+<input class="form-control" @bind="email" placeholder="Email" />
+<input class="form-control" @bind="password" type="password" placeholder="Password" />
+<button class="btn btn-success" @onclick="HandleLogin">Login</button>
 
-<p>@message</p>
-
+<p class="text-info mt-2">@message</p>
 @code {
+
     private string email = string.Empty;
     private string password = string.Empty;
     private string message = string.Empty;
     private string token = string.Empty;
 
-@code {
     private async Task HandleLogin()
     {
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+        {
+            message = "Please complete all fields.";
+            return;
+        }
+
         var dto = new StudentDto { Email = email, Password = password };
         var result = await AuthService.LoginAsync(dto);
 
         if (result != null)
         {
             UserState.SetEmail(dto.Email);
+
+            // 🔑 This will now compile perfectly because it points to the correct Shared DTO model!
             CookieAuthStateProvider.NotifyUserAuthentication(dto.Email, result.StudentId);
             message = "Login successful!";
+
+            NavigationManager.NavigateTo("courses");
         }
         else
         {
-            message = "Login failed.";
+            message = "Login failed. Invalid credentials.";
         }
-    }
-}
-
-
-    public class LoginResult
-    {
-        public string Token { get; set; } = string.Empty;
-        public int StudentId { get; set; }
     }
 }
